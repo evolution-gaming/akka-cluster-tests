@@ -192,6 +192,8 @@ trait MultiNodeClusterSpec extends Suite with ScalaTestMultiNodeSpec with Flight
 
   def clusterView: ClusterReadView = cluster.readView
 
+  def clusterView(sys: ActorSystem): ClusterReadView = Cluster(sys).readView
+
   /**
     * Get the cluster node to use.
     */
@@ -301,15 +303,16 @@ trait MultiNodeClusterSpec extends Suite with ScalaTestMultiNodeSpec with Flight
   def awaitMembersUp(
     numberOfMembers:          Int,
     canNotBePartOfMemberRing: Set[Address]   = Set.empty,
-    timeout:                  FiniteDuration = 30.seconds): Unit = {
+    timeout:                  FiniteDuration = 30.seconds,
+    sys: ActorSystem = system): Unit = {
     within(timeout) {
       if (canNotBePartOfMemberRing.nonEmpty) // don't run this on an empty set
-        awaitAssert(canNotBePartOfMemberRing foreach (a => clusterView.members.map(_.address) should not contain a))
-      awaitAssert(clusterView.members.size should ===(numberOfMembers))
-      awaitAssert(clusterView.members.map(_.status) should ===(Set(MemberStatus.Up)))
-      // clusterView.leader is updated by LeaderChanged, await that to be updated also
-      val expectedLeader = clusterView.members.headOption.map(_.address)
-      awaitAssert(clusterView.leader should ===(expectedLeader))
+        awaitAssert(canNotBePartOfMemberRing foreach (a => clusterView(sys).members.map(_.address) should not contain a))
+      awaitAssert(clusterView(sys).members.size should ===(numberOfMembers))
+      awaitAssert(clusterView(sys).members.map(_.status) should ===(Set(MemberStatus.Up)))
+      // clusterView(sys).leader is updated by LeaderChanged, await that to be updated also
+      val expectedLeader = clusterView(sys).members.headOption.map(_.address)
+      awaitAssert(clusterView(sys).leader should ===(expectedLeader))
     }
   }
 

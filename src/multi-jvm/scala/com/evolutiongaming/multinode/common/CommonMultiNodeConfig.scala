@@ -2,7 +2,7 @@ package com.evolutiongaming.multinode.common
 
 import akka.cluster.MultiNodeClusterSpec
 import akka.remote.testkit.{MultiNodeConfig, MultiNodeSpec}
-import com.typesafe.config.{Config, ConfigFactory}
+import com.typesafe.config.ConfigFactory
 
 import scala.collection.immutable
 
@@ -17,10 +17,7 @@ trait CommonMultiNodeConfig extends MultiNodeConfig {
   def roleName: String = ourRoles(MultiNodeSpec.selfIndex).name
   def configName: String = roleName
 
-  def shardingConfig: Config
-
   commonConfig(debugConfig(on = true)
-    withFallback shardingConfig
     withFallback MultiNodeClusterSpec.clusterConfig(failureDetectorPuppet = true))
 
   for (role <- ourRoles) nodeConfig(role)(ConfigFactory load s"${role.name}.conf")
