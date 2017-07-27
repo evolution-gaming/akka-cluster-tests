@@ -1,14 +1,12 @@
 package com.evolutiongaming.multinode.sharding
 
-import akka.actor.Address
 import akka.cluster.Cluster
 import akka.cluster.sharding.ShardRegion
+import akka.testkit.TestProbe
 import com.evolutiongaming.cluster.ShardedMsg
 import com.evolutiongaming.multinode.sharding.actor.ShardedActor
 import com.evolutiongaming.multinode.sharding.common.{ShardingIdentityMultiNodeConfig, ShardingMultiNodeConfig, ShardingMultiNodeSpec, ShardingUniformMultiNodeConfig}
 
-import scala.collection.immutable
-import scala.compat.Platform
 import scala.concurrent.duration._
 
 class ShardingUniformRestartMultiJvmNode1 extends ShardingUniformRestartMultiNodeSpec
@@ -38,17 +36,6 @@ abstract class DifferentShardingMultiNodeSpec(override val multiJvmConfig: Shard
 
   import multiJvmConfig._
 
-  override def initialParticipants: Int = ourRoles.size
-
-  override def seedNodes: immutable.IndexedSeq[Address] = Vector(first)
-
-  def metered(name: String)(f: => Unit): Unit = {
-    val before = Platform.currentTime
-    f
-    val after = Platform.currentTime
-    println(s"Execution time of $name for ${multiJvmConfig.shardType}: ${after - before}")
-  }
-
   "Cluster nodes" must {
     "be able to restart and join again" in new ShardingMultiNodeScope {
 
@@ -56,6 +43,8 @@ abstract class DifferentShardingMultiNodeSpec(override val multiJvmConfig: Shard
 
         cluster joinSeedNodes seedNodes
         awaitMembersUp(ourRoles.size)
+
+        singleNodeAllocationAddress = clusterView.members map (_.uniqueAddress.address) find (_.port contains 9197)
 
         enterBarrier("initial-nodes-up")
 
@@ -87,7 +76,7 @@ abstract class DifferentShardingMultiNodeSpec(override val multiJvmConfig: Shard
           shardRegion ! ShardRegion.GetClusterShardingStats(30.seconds)
 
           expectMsgPF() {
-            case msg => println("############# " + msg)
+            case msg => println(s"Sharding before the node restart: $msg")
           }
 
           enterBarrier("sharding-stats")
@@ -103,11 +92,13 @@ abstract class DifferentShardingMultiNodeSpec(override val multiJvmConfig: Shard
 
             enterBarrier("node-up")
 
+            val newProbe = TestProbe()(newSystem)
+
             val newRegion = startSharding(newSystem)
 
             for (i <- 1 to NumberOfActors) {
-              newRegion ! ShardedMsg(i.toString, ShardedActor.Get)
-              expectMsgPF() {
+              newRegion.tell(ShardedMsg(i.toString, ShardedActor.Get), newProbe.ref)
+              newProbe.expectMsgPF() {
                 case msg =>
               }
             }
@@ -120,10 +111,12 @@ abstract class DifferentShardingMultiNodeSpec(override val multiJvmConfig: Shard
             awaitMembersUp(ourRoles.size)
             enterBarrier("node-up")
 
-            for (i <- 1 to NumberOfActors) {
-              shardRegion ! ShardedMsg(i.toString, ShardedActor.Get)
-              expectMsgPF() {
-                case _ =>
+            metered("SHARDING-READ-UP") {
+              for (i <- 1 to NumberOfActors) {
+                shardRegion ! ShardedMsg(i.toString, ShardedActor.Get)
+                expectMsgPF() {
+                  case _ =>
+                }
               }
             }
 
@@ -132,7 +125,7 @@ abstract class DifferentShardingMultiNodeSpec(override val multiJvmConfig: Shard
             shardRegion ! ShardRegion.GetClusterShardingStats(30.seconds)
 
             expectMsgPF() {
-              case msg => println("%%%%%%%%%%%%%% " + msg)
+              case msg => println(s"Sharding after the node restart: $msg")
             }
           }
         }

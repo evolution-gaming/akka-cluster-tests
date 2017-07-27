@@ -49,12 +49,12 @@ object MultiNodeClusterSpec {
       auto-down-unreachable-after         = off
       allow-weakly-up-members             = off
       jmx.enabled                         = off
-      gossip-interval                     = 200 ms
-      leader-actions-interval             = 200 ms
-      unreachable-nodes-reaper-interval   = 500 ms
-      periodic-tasks-initial-delay        = 300 ms
-      publish-stats-interval              = 0 s # always, when it happens
-      failure-detector.heartbeat-interval = 500 ms
+      gossip-interval                     = 200ms
+      leader-actions-interval             = 200ms
+      unreachable-nodes-reaper-interval   = 500ms
+      periodic-tasks-initial-delay        = 300ms
+      publish-stats-interval              = 0s # always, when it happens
+      failure-detector.heartbeat-interval = 500ms
     }
     akka.loglevel = INFO
     akka.log-dead-letters = off
@@ -67,9 +67,6 @@ object MultiNodeClusterSpec {
       }
     }
     akka.loggers = ["akka.testkit.TestEventListener"]
-    akka.test {
-      single-expect-default = 5 s
-    }
 
     """)
 
