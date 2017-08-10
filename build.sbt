@@ -14,9 +14,9 @@ organizationHomepage := Some(url("http://evolutiongaming.com"))
 
 bintrayOrganization := Some("evolutiongaming")
 
-scalaVersion := "2.12.2"
+scalaVersion := "2.12.3"
 
-crossScalaVersions := Seq("2.12.2", "2.11.11")
+crossScalaVersions := Seq("2.12.3", "2.11.11")
 
 releaseCrossBuild := true
 
@@ -38,22 +38,22 @@ resolvers += Resolver.bintrayRepo("evolutiongaming", "maven")
 
 licenses := Seq(("Apache-2.0", url("http://www.apache.org/licenses/LICENSE-2.0")))
 
-val Version = "2.5.2"
+val AkkaVersion = "2.5.3"
 
 lazy val clusterTests = (Project("akka-cluster-tests", file("."))
   settings (multiJvmSettings: _*)
   settings (fork in Test := true)
   settings (parallelExecution in Test := false)
   settings (libraryDependencies ++= Seq(
-  "com.typesafe.akka" %% "akka-actor" % Version,
-  "com.typesafe.akka" %% "akka-cluster" % Version % Compile,
-  "com.typesafe.akka" %% "akka-cluster-sharding" % Version % Compile,
-  "com.typesafe.akka" %% "akka-cluster-tools" % Version % Compile,
-  "com.typesafe.akka" %% "akka-contrib" % Version % Compile,
-  "com.typesafe.akka" %% "akka-distributed-data" % Version % Compile,
-  "com.typesafe.akka" %% "akka-remote" % Version % Compile,
-  "com.typesafe.akka" %% "akka-testkit" % Version % Test,
-  "com.typesafe.akka" %% "akka-multi-node-testkit" % Version % Test,
+  "com.typesafe.akka" %% "akka-actor" % AkkaVersion,
+  "com.typesafe.akka" %% "akka-cluster" % AkkaVersion % Compile,
+  "com.typesafe.akka" %% "akka-cluster-sharding" % AkkaVersion % Compile,
+  "com.typesafe.akka" %% "akka-cluster-tools" % AkkaVersion % Compile,
+  "com.typesafe.akka" %% "akka-contrib" % AkkaVersion % Compile,
+  "com.typesafe.akka" %% "akka-distributed-data" % AkkaVersion % Compile,
+  "com.typesafe.akka" %% "akka-remote" % AkkaVersion % Compile,
+  "com.typesafe.akka" %% "akka-testkit" % AkkaVersion % Test,
+  "com.typesafe.akka" %% "akka-multi-node-testkit" % AkkaVersion % Test,
   "com.evolutiongaming" %% "no-log4j-test" % "0.3" % Test,
   "com.evolutiongaming" %% "akka-tools" % "1.1.19",
   "com.google.code.findbugs" % "jsr305" % "3.0.2",
